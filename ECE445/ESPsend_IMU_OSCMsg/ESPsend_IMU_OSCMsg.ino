@@ -139,7 +139,7 @@ void loop() {
   }
   counter++;
   OSCMessage msg("/testAddr");
-  msg.add(IMU.getAccelX_mss()).add(IMU.getAccelY_mss()).add(IMU.getAccelZ_mss());
+  msg.add(roll).add(pitch).add(yaw);
   Udp.beginPacket(outIp, outPort);
   msg.send(Udp);
   Udp.endPacket();
