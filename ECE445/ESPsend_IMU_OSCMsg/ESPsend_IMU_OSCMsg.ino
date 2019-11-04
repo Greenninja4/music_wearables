@@ -14,9 +14,10 @@
 #include "OSCMessage.h"
 #include "MPU9250.h"
 
-//#include "MahonyAHRS.h"
+
 extern "C" {
-#include "MahonyAHRS.h"
+
+#include "MadgwickAHRS.h"
 };
 // an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
 MPU9250 IMU(Wire, 0x68);
@@ -29,6 +30,14 @@ WiFiUDP Udp;                                // A UDP instance to let us send and
 const IPAddress outIp(192, 168, 1, 126);     // remote IP of your computer
 const unsigned int outPort = 57120;          // remote port to receive OSC
 const unsigned int localPort = 8888;        // local port to listen for OSC packets (actually not used for sending)
+
+// the number of the LED pin
+const int ledPin = 16;  // 16 corresponds to GPIO16
+
+// setting PWM properties
+const int freq = 5000;
+const int ledChannel = 0;
+const int resolution = 8;
 
 void setup() {
   Serial.begin(115200);
@@ -74,6 +83,12 @@ void setup() {
     while (1) {}
   }
 
+   // configure LED PWM functionalitites
+  ledcSetup(ledChannel, freq, resolution);
+  
+  // attach the channel to the GPIO to be controlled
+  ledcAttachPin(ledPin, ledChannel);
+
 }
 
 void loop() {
@@ -99,7 +114,7 @@ void loop() {
 //  Serial.print(IMU.getMagZ_uT(), 6);
 //  Serial.print("\t");
 //  Serial.println(IMU.getTemperature_C(), 6);
-  MahonyAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
+  MadgwickAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
 //  Serial.println(q0, 6);
 //  Serial.print("\t");
 //  Serial.println(q1, 6);
@@ -129,4 +144,19 @@ counter++;
   msg.send(Udp);
   Udp.endPacket();
   msg.empty();
+
+  // increase the LED brightness
+  for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
+    // changing the LED brightness with PWM
+    ledcWrite(ledChannel, dutyCycle);
+    delay(15);
+  }
+
+  // decrease the LED brightness
+  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
+    // changing the LED brightness with PWM
+    ledcWrite(ledChannel, dutyCycle);   
+    delay(15);
+  }
+  
 }
