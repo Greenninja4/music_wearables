@@ -30,8 +30,23 @@ const IPAddress outIp(192, 168, 1, 126);     // remote IP of your computer
 const unsigned int outPort = 57120;          // remote port to receive OSC
 const unsigned int localPort = 8888;        // local port to listen for OSC packets (actually not used for sending)
 
+
+const int ledPin = 16;  // 16 corresponds to GPIO16
+
+// setting PWM properties
+const int freq = 5000;
+const int ledChannel = 0;
+const int resolution = 8;
+
 void setup() {
   Serial.begin(115200);
+
+
+  // configure LED PWM functionalitites
+  ledcSetup(ledChannel, freq, resolution);
+
+  // attach the channel to the GPIO to be controlled
+  ledcAttachPin(ledPin, ledChannel);
 
   // Connect to WiFi network
   Serial.println();
@@ -80,53 +95,68 @@ void loop() {
   // read the sensor
   IMU.readSensor();
   //   display the data
-//  Serial.print(IMU.getAccelX_mss(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getAccelY_mss(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getAccelZ_mss(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getGyroX_rads(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getGyroY_rads(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getGyroZ_rads(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getMagX_uT(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getMagY_uT(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getMagZ_uT(), 6);
-//  Serial.print("\t");
-//  Serial.println(IMU.getTemperature_C(), 6);
+  //  Serial.print(IMU.getAccelX_mss(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getAccelY_mss(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getAccelZ_mss(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getGyroX_rads(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getGyroY_rads(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getGyroZ_rads(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getMagX_uT(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getMagY_uT(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getMagZ_uT(), 6);
+  //  Serial.print("\t");
+  //  Serial.println(IMU.getTemperature_C(), 6);
   MahonyAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
-//  Serial.println(q0, 6);
-//  Serial.print("\t");
-//  Serial.println(q1, 6);
-//  Serial.print("\t");
-//  Serial.println(q2, 6);
-//  Serial.print("\t");
-//  Serial.println(q3, 6);
+  //  Serial.println(q0, 6);
+  //  Serial.print("\t");
+  //  Serial.println(q1, 6);
+  //  Serial.print("\t");
+  //  Serial.println(q2, 6);
+  //  Serial.print("\t");
+  //  Serial.println(q3, 6);
   //  delay(100);
 
   float yaw;
   float pitch;
   float roll;
-  
-  yaw   = atan2(2*q1*q2-2*q0*q3,2*q0*q0+2*q1*q1-1)*180/PI;
-  pitch = -1*asin(2*q1*q3+2*q0*q2)*180/PI;
-  roll  = atan2(2*q2*q3-2*q0*q1,2*q0*q0+2*q3*q3-1)*180/PI;
-if(counter%100 < 1){
-  Serial.println(yaw, 6);
-  Serial.println(pitch, 6);
-  Serial.println(roll, 6);
-  Serial.println("_______");
-}
-counter++;
+
+  yaw   = atan2(2 * q1 * q2 - 2 * q0 * q3, 2 * q0 * q0 + 2 * q1 * q1 - 1) * 180 / PI;
+  pitch = -1 * asin(2 * q1 * q3 + 2 * q0 * q2) * 180 / PI;
+  roll  = atan2(2 * q2 * q3 - 2 * q0 * q1, 2 * q0 * q0 + 2 * q3 * q3 - 1) * 180 / PI;
+  if (counter % 100 < 1) {
+    Serial.println(yaw, 6);
+    Serial.println(pitch, 6);
+    Serial.println(roll, 6);
+    Serial.println("_______");
+  }
+  counter++;
   OSCMessage msg("/testAddr");
   msg.add(IMU.getAccelX_mss()).add(IMU.getAccelY_mss()).add(IMU.getAccelZ_mss());
   Udp.beginPacket(outIp, outPort);
   msg.send(Udp);
   Udp.endPacket();
   msg.empty();
+
+  for (int dutyCycle = 0; dutyCycle <= 255; dutyCycle++) {
+    // changing the LED brightness with PWM
+    ledcWrite(ledChannel, dutyCycle);
+    delay(15);
+  }
+
+  // decrease the LED brightness
+  for (int dutyCycle = 255; dutyCycle >= 0; dutyCycle--) {
+    // changing the LED brightness with PWM
+    ledcWrite(ledChannel, dutyCycle);
+    delay(15);
+  }
+
+
 }
