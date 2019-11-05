@@ -14,9 +14,10 @@
 #include "OSCMessage.h"
 #include "MPU9250.h"
 
-//#include "MahonyAHRS.h"
+
 extern "C" {
-#include "MahonyAHRS.h"
+
+#include "MadgwickAHRS.h"
 };
 // an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
 MPU9250 IMU(Wire, 0x68);
@@ -113,7 +114,7 @@ void loop() {
 //  Serial.print(IMU.getMagZ_uT(), 6);
 //  Serial.print("\t");
 //  Serial.println(IMU.getTemperature_C(), 6);
-  MahonyAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
+  MadgwickAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
 //  Serial.println(q0, 6);
 //  Serial.print("\t");
 //  Serial.println(q1, 6);
