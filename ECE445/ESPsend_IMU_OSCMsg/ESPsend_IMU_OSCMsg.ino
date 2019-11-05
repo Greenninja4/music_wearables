@@ -49,12 +49,6 @@ void setup() {
   Serial.println(ssid);
   WiFi.begin(ssid, pass);
 
-  //    while (WiFi.status() != WL_CONNECTED) {
-  //        delay(500);
-  //        Serial.print(".");
-  //    }
-  //    Serial.println("");
-
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
@@ -83,9 +77,9 @@ void setup() {
     while (1) {}
   }
 
-   // configure LED PWM functionalitites
+  // configure LED PWM functionalitites
   ledcSetup(ledChannel, freq, resolution);
-  
+
   // attach the channel to the GPIO to be controlled
   ledcAttachPin(ledPin, ledChannel);
 
@@ -95,68 +89,78 @@ void loop() {
   // read the sensor
   IMU.readSensor();
   //   display the data
-//  Serial.print(IMU.getAccelX_mss(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getAccelY_mss(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getAccelZ_mss(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getGyroX_rads(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getGyroY_rads(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getGyroZ_rads(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getMagX_uT(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getMagY_uT(), 6);
-//  Serial.print("\t");
-//  Serial.print(IMU.getMagZ_uT(), 6);
-//  Serial.print("\t");
-//  Serial.println(IMU.getTemperature_C(), 6);
+  //  Serial.print(IMU.getAccelX_mss(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getAccelY_mss(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getAccelZ_mss(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getGyroX_rads(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getGyroY_rads(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getGyroZ_rads(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getMagX_uT(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getMagY_uT(), 6);
+  //  Serial.print("\t");
+  //  Serial.print(IMU.getMagZ_uT(), 6);
+  //  Serial.print("\t");
+  //  Serial.println(IMU.getTemperature_C(), 6);
   MadgwickAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
-//  Serial.println(q0, 6);
-//  Serial.print("\t");
-//  Serial.println(q1, 6);
-//  Serial.print("\t");
-//  Serial.println(q2, 6);
-//  Serial.print("\t");
-//  Serial.println(q3, 6);
+  //  Serial.println(q0, 6);
+  //  Serial.print("\t");
+  //  Serial.println(q1, 6);
+  //  Serial.print("\t");
+  //  Serial.println(q2, 6);
+  //  Serial.print("\t");
+  //  Serial.println(q3, 6);
   //  delay(100);
 
   float yaw;
   float pitch;
   float roll;
-  
-  yaw   = atan2(2*q1*q2-2*q0*q3,2*q0*q0+2*q1*q1-1)*180/PI;
-  pitch = -1*asin(2*q1*q3+2*q0*q2)*180/PI;
-  roll  = atan2(2*q2*q3-2*q0*q1,2*q0*q0+2*q3*q3-1)*180/PI;
-if(counter%100 < 1){
-  Serial.println(yaw, 6);
-  Serial.println(pitch, 6);
-  Serial.println(roll, 6);
-  Serial.println("_______");
-}
-counter++;
+
+  yaw   = atan2(2 * q1 * q2 - 2 * q0 * q3, 2 * q0 * q0 + 2 * q1 * q1 - 1) * 180 / PI;
+  pitch = -1 * asin(2 * q1 * q3 + 2 * q0 * q2) * 180 / PI;
+  roll  = atan2(2 * q2 * q3 - 2 * q0 * q1, 2 * q0 * q0 + 2 * q3 * q3 - 1) * 180 / PI;
+  if (counter % 100 < 1) {
+    Serial.println(yaw, 6);
+    Serial.println(pitch, 6);
+    Serial.println(roll, 6);
+    Serial.println("_______");
+  }
+  counter++;
   OSCMessage msg("/testAddr");
   msg.add(roll).add(pitch).add(yaw);
   Udp.beginPacket(outIp, outPort);
   msg.send(Udp);
-  Udp.endPacket();
+  //check the status of packet send
+  Serial.print(Udp.endPacket());
   msg.empty();
 
   // increase the LED brightness
-  for(int dutyCycle = 0; dutyCycle <= 255; dutyCycle++){   
+  for (int dutyCycle = 0; dutyCycle <= 255; dutyCycle++) {
     // changing the LED brightness with PWM
     ledcWrite(ledChannel, dutyCycle);
     delay(15);
   }
 
   // decrease the LED brightness
-  for(int dutyCycle = 255; dutyCycle >= 0; dutyCycle--){
+  for (int dutyCycle = 255; dutyCycle >= 0; dutyCycle--) {
     // changing the LED brightness with PWM
-    ledcWrite(ledChannel, dutyCycle);   
+    ledcWrite(ledChannel, dutyCycle);
     delay(15);
   }
-  
+
+  //periodically check the wifi connection
+  if (counter % 100 < 1) {
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+  }
+  // adjust the delay for udp sending rate
+  delay(1);
 }
