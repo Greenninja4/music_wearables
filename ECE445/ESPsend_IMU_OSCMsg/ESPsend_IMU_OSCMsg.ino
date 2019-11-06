@@ -56,6 +56,7 @@ void setup() {
   Serial.println("Starting UDP");
   Udp.begin(localPort);
   Serial.print("Local port: ");
+  
 #ifdef ESP32
   Serial.println(localPort);
 #else
@@ -88,6 +89,7 @@ void setup() {
 void loop() {
   // read the sensor
   IMU.readSensor();
+  
   //   display the data
   //  Serial.print(IMU.getAccelX_mss(), 6);
   //  Serial.print("\t");
@@ -108,7 +110,9 @@ void loop() {
   //  Serial.print(IMU.getMagZ_uT(), 6);
   //  Serial.print("\t");
   //  Serial.println(IMU.getTemperature_C(), 6);
+  
   MadgwickAHRSupdate(IMU.getGyroX_rads(), IMU.getGyroY_rads(), IMU.getGyroZ_rads(), IMU.getAccelX_mss(), IMU.getAccelY_mss(), IMU.getAccelZ_mss(), IMU.getMagX_uT(), IMU.getMagY_uT(), IMU.getMagZ_uT());
+  
   //  Serial.println(q0, 6);
   //  Serial.print("\t");
   //  Serial.println(q1, 6);
@@ -125,19 +129,25 @@ void loop() {
   yaw   = atan2(2 * q1 * q2 - 2 * q0 * q3, 2 * q0 * q0 + 2 * q1 * q1 - 1) * 180 / PI;
   pitch = -1 * asin(2 * q1 * q3 + 2 * q0 * q2) * 180 / PI;
   roll  = atan2(2 * q2 * q3 - 2 * q0 * q1, 2 * q0 * q0 + 2 * q3 * q3 - 1) * 180 / PI;
+  
   if (counter % 100 < 1) {
     Serial.println(yaw, 6);
     Serial.println(pitch, 6);
     Serial.println(roll, 6);
     Serial.println("_______");
   }
+  
   counter++;
+  
   OSCMessage msg("/testAddr");
   msg.add(roll).add(pitch).add(yaw);
   Udp.beginPacket(outIp, outPort);
   msg.send(Udp);
   //check the status of packet send
-  Serial.print(Udp.endPacket());
+  if(Udp.endPacket() != 1){
+    Serial.print("packet lost!");
+    }
+  
   msg.empty();
 
   // increase the LED brightness
@@ -161,6 +171,7 @@ void loop() {
       Serial.print(".");
     }
   }
+  
   // adjust the delay for udp sending rate
   delay(1);
 }
