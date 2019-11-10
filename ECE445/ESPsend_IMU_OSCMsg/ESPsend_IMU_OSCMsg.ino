@@ -122,10 +122,12 @@ void loop() {
 
   // Every 100 cycles
   if(counter%100 == 0){
-    // Display orientation to serial monitor
-    Serial.println(yaw);
-    Serial.println(pitch);
-    Serial.println(roll);
-    Serial.println("_____________");
+    // Display orientation to serial monitor or serial plotter
+    Serial.print(yaw);
+    Serial.print(", ");
+    Serial.print(pitch);
+    Serial.print(", ");
+    Serial.print(roll);
+    Serial.println();
   }
 }
