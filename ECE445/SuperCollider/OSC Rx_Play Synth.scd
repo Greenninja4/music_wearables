@@ -40,6 +40,12 @@ SynthDef.new(\fmSynth,{
 }).add;
 )
 
+//mapping functions
+//mapTo180 = { arg x; x/180};
+//mapTo90 = { arg x; x/90};
+//mapToFreq = {arg data; 220 * (((int)data * (1/15)) + 12)};
+//mapToAmp = {arg data; ((data) / 600)};
+
 // Recieving OSC messages and play synth
 (
 ~synth1 = Synth.new(\fmSynth);
@@ -47,10 +53,10 @@ OSCdef.new(\recv, {
 	arg msg;
 	var sig, freq, amp, pan, x;
 	// Expected message format: \path, arg1, arg2, arg3
-	//msg.postln;                // Post OSC message to window
-	freq = 220 * ((msg[1] * (1/15)) + 12).midiratio;    // Map freq range from [-180, 180] to [220, 880]
-	amp = ((msg[2] + 180) / 600);                       // Map amp range from  [-180, 180] to [0, 0.8]
-	pan = msg[3] / 180;                                 // Map pan from [-180, 180] to [-1, 1]
+	msg.postln;                // Post OSC message to window
+	freq = msg[1]/180 * 440;    // Map freq range from [-180, 180] to [220, 880]
+	amp = msg[2]/180;                    // Map amp range from  [-180, 180] to [0, 0.8]
+	pan = msg[3]/180;                                // Map pan from [-180, 180] to [-1, 1]
 	x = [freq, amp, pan];				    // Assign freq, amp, and pan to array x
 	x.postln;					    // Post [freq, amp, pan] values to window
 	~synth1.set(\carHz, freq, \amp, amp, \pan, pan);
