@@ -17,19 +17,19 @@
 
 // Quick setup of session
 (
-s.boot;                             // Boot server
-s.meter;                            // Open level meter
-s.scope;                            // Open Scope
-s.freqscope;                        // Open Frequency Scope
-s.plotTree;                         // Open Node Tree
+s.boot;								// Boot server
+s.meter;							// Open level meter
+s.scope;							// Open Scope
+s.freqscope;						// Open Frequency Scope
+s.plotTree;							// Open Node Tree
 )
 
-NetAddr.langPort                    // Show the current port SC is listening on in post window
+NetAddr.langPort					// Show the current port SC is listening on in post window
 
 // Define Synth Object
 (
 SynthDef.new(\fmSynth,{
-	arg carHz=600, modHz=200, modAmp=200, amp=0.2, pan=0, gate=0;
+	arg carHz=600.0, modHz=200.0, modAmp=200.0, amp=0.2, pan=0.0, gate=0;
 //	atk=0.01, rel=1;
 	var sig, mod, env;
 	env = EnvGen.kr(Env.adsr, gate);//, doneAction:2);	// doneAction:2 frees the synth object when amp is 0
@@ -47,16 +47,16 @@ OSCdef.new(\recv, {
 	arg msg;
 	var sig, freq, amp, pan, gate, x;
 	// Expected message format: \path, arg1, arg2, arg3
-	//msg[3].postln;		// Post OSC message to window
+	msg[3].postln;		// Post OSC message to window
 	//Lag.kr(msg,0.1);		// Smoothing function
 	gate = msg[4];			// Gate trigger
-	
+
 	// Synth frequency
 	if (
-		(msg[1] <= 90.0) && (msg[1] >= -90.0),					// Conditional
-		{freq = 220 * ((((msg[1])) * (24/180)) + 12).midiratio},		// Function if true
-		{									// Function if false
-			if (msg[1] > 90.0,						// Conditional
+		(msg[1] <= 90.0) && (msg[1] >= -90.0),							// Conditional
+		{freq = 220.0 * ((((msg[1])) * (24/180)) + 12).midiratio},		// Function if true
+		{																// Function if false
+			if (msg[1] > 90.0,											// Conditional
 				{freq = 220 * (36 - (12 * msg[1] / 90.0)).midiratio},	// Function if true
 				{freq = 220 * (-12 - (12 * msg[1] / 90.0)).midiratio}	// Function if false
 			)
@@ -64,18 +64,18 @@ OSCdef.new(\recv, {
 	);
 	amp = ((msg[2] * (0.8/180)) + 0.4);			// Map amp range from [-180, 180] to [0, 0.6]
 	if (
-		(msg[3] <= 90.0) && (msg[3] >= -90.0),		// Conditional
-		{pan = ((msg[3] / 90.0))},			// Function if true
-		{						// Function if false
-			if (msg[3] > 90.0,			// Conditional
-				{pan = (2 - (msg[3]/90.0));},	// Function if true
-				{pan = (-2 - (msg[3]/90.0));}	// Function if false
+		(msg[3] <= 90.0) && (msg[3] >= -90.0),			// Conditional
+		{pan = ((msg[3] / -90.0))},						// Function if true
+		{												// Function if false
+			if (msg[3] > 90.0,							// Conditional
+				{pan = (-2 + (msg[3] / 90.0));},		// Function if true
+				{pan = (2 + (msg[3] / 90.0));}		// Function if false
 			)
 		}
 	);
 	// pan = LinExp.kr(pan, -1, 1, -1, 1);
 	//pan.linexp(-1,1,-1,1);
-	x = [freq, amp, pan, gate];				// Assign freq, amp, and pan to array x
+	x = pan;				// Assign freq, amp, and pan to array x
 	x.postln;						// Post [freq, amp, pan] values to window
 	~synth1.set(\carHz, freq, \amp, amp, \pan, pan, \gate, gate);
 }, '/testAddr');
