@@ -9,7 +9,7 @@ This project uses the MPU-9250 Inertial Measurement Unit (IMU) to determine the 
 ## Images
 
 ![PCB](PCB.jpg "PCB")
-![PCB Design](PCB_brd.png "PCB Design")
+![PCB Design](PCB_design.png "PCB Design")
 ![3D Printed Enclosures](CAD_Enclosure.png "3D Printed Enclosures")
 
 ## Contributors
