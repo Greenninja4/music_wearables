@@ -39,16 +39,33 @@ SynthDef.new(\sawtone, {
 )
 
 // Assign synth node to environment variable
-~sawSynth = Synth.new(\sawtone)
+~sawSynth = Synth.new(\sawtone);
 
 // Execute function
-~sawSynth.set(\freq, 800, \amp, 0.5)
+~sawSynth.set(\freq, 800, \amp, 0.5);
 
 // Free Synth object
 ~sawSynth.free;
 
+//////////////////////////////////////// AM Synth ////////////////////////////////////////
+(
+SynthDef.new(\am,{
+	arg carHz=600, modHz=200, modAmp=1, amp=0.2, pan=0;
+	var car, mod, env;
+	mod = SinOsc.ar(MouseX.kr(0.01*modHz,modHz,1), mul:modAmp);
+	//car = SinOsc.ar(MouseY.kr(0.5*carHz,2*carHz,1) + mod) * amp;
+	car = VarSaw.ar((carHz * MouseY.kr(0,12,0).midiratio), mul:amp * mod);
+	car = Pan2.ar(car, pan);
+	Out.ar(0, car);
+}).add;
+)
 
-// FM Synth
+~amSynth = Synth.new(\am)
+
+~amSynth.free
+
+
+//////////////////////////////////////// FM Synth ////////////////////////////////////////
 (
 SynthDef.new(\fm,{
 	arg carHz=600, modHz=200, modAmp=200, amp=0.2, pan=0;
@@ -76,7 +93,7 @@ SynthDef.new(\fm,{
 ).play;
 )
 
-// Sequencer
+//////////////////////////////////////// Sequencer ////////////////////////////////////////
 (
 SynthDef.new(\fmperc,{
 	arg carHz=600, modHz=200, modAmp=200, amp=0.2, pan=0,
@@ -109,7 +126,7 @@ SynthDef.new(\fmperc,{
 
 // TO DO: Figure out how to control Pbind dur externally
 
-// Random synth
+//////////////////////////////////////// Random synth ////////////////////////////////////////
 (
 SynthDef.new(\RndmSyn, {
 	arg amp=0.3, speed=8, detune=0.25;
@@ -125,3 +142,87 @@ SynthDef.new(\RndmSyn, {
 
 ~rndmSyn = Synth.new(\RndmSyn);
 ~rndmSyn.free;
+
+//////////////////////////////////////// Sawtooth ////////////////////////////////////////
+(
+SynthDef(\sawsynth,
+	{
+		arg freq=400, atk=0.01, rel=1, amp=0.2, hrm=4, out=0;
+		var sig, env;
+		env = Env.perc(atk, rel).kr(2);
+		sig = Saw.ar([freq, freq * 0.2.midiratio]);
+		sig = RLPF.ar(sig, (freq * hrm).clip(20, 20000), 0.5);
+		sig = sig * env * amp;
+		Out.ar(out, sig);
+	}
+).add;
+)
+
+(
+Pbindef(\sawpatrn,
+	\instrument, \sawsynth,
+	\dur, 0.2,
+	\scale, Scale.minorPentatonic,
+	\degree, Pseq([0,-1,-2,-3,-4,-5], inf),
+	\amp, 0.2,
+	\atk, 0.01,
+	\rel, 0.3,
+	\out, 0,
+).play
+)
+
+Pbindef(\sawpatrn).set(\hrm, 50);
+Pbindef(\sawpatrn).stop;
+
+
+//////////////////////////////////////// IMU Synth 1 ////////////////////////////////////////
+(
+SynthDef.new(\IMUSynth_1,{
+	arg freq=600.0, detune=0.2, amp=0.2, pan=0.0, gate=1,
+	fmHz=200.0, fmAmp=0.0, lpf=15000,
+	atk=0.01, rel=1.0, curv=(-4.0);
+	var sig, fm, am, env, detuneCtrl;
+	env = EnvGen.kr(
+		Env.adsr(atk,releaseTime:rel, curve:curv),
+		gate,
+		doneAction:2);	// doneAction:2 frees the synth object when env finishes
+	fm = SinOsc.ar(fmHz, mul:fmAmp);
+	detuneCtrl = LFNoise1.kr(0.1!8).bipolar(detune).midiratio;
+	sig = Saw.ar((freq + fm) * detuneCtrl);
+	sig = sig * env;
+	sig = Splay.ar(sig, (1.0 - pan.abs), center:pan);
+	sig = LPF.ar(sig, lpf.clip(20, 20000), amp);
+	Out.ar(0, sig);
+}).add;
+)
+
+(
+Pbindef(\IMU_pat,
+	\instrument, \IMUSynth_1,
+	\dur, 0.2,
+	\scale, Scale.minorPentatonic,
+	\degree, Pseq([0,-1,-2,-3,-4,-5], inf),
+	\amp, 0.2,
+	\pan, Pwhite(-1.0,1.0, inf),
+	\lpf, Pwhite(50,15000, inf),
+	\out, 0,
+).play
+)
+Pbindef(\IMU_pat).set(\rel,1.0);
+Pbindef(\IMU_pat).stop;
+
+~imuSynth1 = Synth.new(\IMUSynth_1);
+~imuSynth1.set(\gate, 1);
+~imuSynth1.set(\freq, 300, \pan, 0.0);
+~imuSynth1.set(\lpf, 15000);
+~imuSynth1.set(\gate, 0);
+
+
+s.options.numOutputBusChannels_(2);
+s.boot;
+s.meter;
+s.quit;
+
+Env.adsr(0.02, 0.2, 0.25, 1, 1, -5).test(2).plot;
+Env.adsr(0.001, 0.2, 0.25, 1, 1, -4).test(2).plot;
+Env.adsr(0.001, 0.2, 0.25, 1, 1, -4).test(10).plot;    // release after 0.45 sec
