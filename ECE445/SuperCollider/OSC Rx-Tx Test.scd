@@ -2,24 +2,11 @@
 // Recieving OSC messages
 (
 OSCdef.new(\recv, {
-	arg msg, x, y;
-	//msg.postln;
-/*	if((msg[5] != ~btn1_state) && (msg[5]==false),
-		{"event1".postln; ~btn1_state = msg[5]},
-		{if((msg[5] != ~btn1_state) && (msg[5]==true),
-			{"event2".postln; ~btn1_state = msg[5]},{
-				nil;
-			}
-		)}
-	);*/
-y = case
-		{(msg[5] != ~btn1_state) && (msg[5]==false)} {"event1".postln; ~btn1_state = msg[5];}
-		{(msg[5] != ~btn1_state) && (msg[5]==true)} {"event2".postln; ~btn1_state = msg[5];}
-		{true} {nil};
+	arg msg, x;
+	msg.postln;
 
-	x = [msg[5], y];
-	x.postln;
-	// btn1_state.postln;
+	/*x = [msg[5]];
+	x.postln;*/
 
 }, '/device1');
 )

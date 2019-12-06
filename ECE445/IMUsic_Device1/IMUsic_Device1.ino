@@ -27,16 +27,16 @@ int status;                               // Status signal
 float yaw, pitch, roll;                   // Orientaion values
 
 // Push-buttons
-const int button0 = 12;                   // Button 1 connects to esp-thing:GPIO 12, Wrover: 12
+const int button0 = 15;                   // Button 1 connects to esp-thing:GPIO 15, Wrover: 12
 int buttonPrev0 = 0;
 int buttonCurr0 = 0;
-const int button1 = 14;                   // Button 2 connects to esp-thing:GPIO 14, Wrover: 13
+const int button1 = 13;                   // Button 2 connects to esp-thing:GPIO 13, Wrover: 13
 int buttonPrev1 = 0;
 int buttonCurr1 = 0;
-const int button2 = 15;                   // Button 3 connects to esp-thing:GPIO 15, Wrover: 14
+const int button2 = 14;                   // Button 3 connects to esp-thing:GPIO 14, Wrover: 14
 int buttonPrev2 = 0;
 int buttonCurr2 = 0;
-const int button3 = 13;                   // Button 4 connects to esp-thing:GPIO 13, Wrover: 15
+const int button3 = 12;                   // Button 4 connects to esp-thing:GPIO 12, Wrover: 15
 int buttonPrev3 = 0;
 int buttonCurr3 = 0;
 
@@ -219,7 +219,7 @@ void loop() {
   if (buttonCurr1 != buttonPrev1) {       // Change in button press
     if (buttonCurr1 == 1) {               // Pressed
      buttonPrev1 = 1;
-      btn1_toggle = !btn1_toggle;
+     btn1_toggle = !btn1_toggle;
     } else {                              // Released
       buttonPrev1 = 0;
     }
